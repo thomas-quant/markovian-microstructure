@@ -1,0 +1,377 @@
+okay folks welcome back this is volume
+two of three for mastering high
+probability scalping we're focusing on
+previous day bank liquidity runs alright
+so we'll be reviewing the daily bias so
+we everyone knows exactly what should be
+done and I'm referring to a daily chart
+here so when we're implementing the
+daily bias what we're gonna be doing is
+on a daily chart we're gonna be waiting
+for a swing high to form and to be
+broken this will be bullish okay when we
+see a swing high broken in other words a
+candle that has a lower high to the left
+of it and then lower high to the right
+of it as seen here okay if at any time
+in the future its traded through when we
+have that we have a bullish stage in
+other words we anticipate a future
+buying opportunity doesn't mean to buy
+it right there just means we are now on
+an alert to wait for a specific criteria
+criteria is going to be looking for a
+swing low to form down here okay a swing
+low again is a candle that has a higher
+load to the left of it and a higher load
+to the right of it again on the daily
+chart key point here is this swing low
+should not take out a previous recent
+swing low okay so if we have this
+criteria immediately after a heist
+broken we have the probable optimal
+trade entry scenario by itself on a
+daily chart okay doesn't mean it has to
+line up with a 62 - sometimes at Racing
+level it just means that we are in
+effect trading with a higher
+after breaking a short-term high so we
+have a break-in market structure a
+retracement so therefore the market
+should have an ability to find momentum
+on the upside okay when the swing low
+forms we're going to be anticipating the
+third candle that is this one here it's
+high to be rated or traded through the
+very next day so in other words the next
+trading day where it opens preferably
+you want to see it open below the third
+candle the swing lows high
+okay so here's your criterion you want
+to see the swing low form without
+breaking a previous swing low
+immediately after a swing high is formed
+but breaking a previous swing high ok so
+again the stage for a bullish scenario
+is anytime I swing high is broken and
+traded to a new high expect a
+retracement wait for a daily swing low
+to form swing low should be a higher
+swing load in any recent previous
+short-term swing low the third candle
+that makes the swing low that high you
+want to see the next candle open below
+that candle is high and then anticipate
+the market to run through this candle is
+high we're looking for previous day's
+highs to be rated each day until a swing
+high when a daily forms or price reaches
+a key support or resistance level and
+I'll give you an example what that would
+be well the immediate candle after this
+particular day's formation may be
+looking for a bullish scenario okay
+either in London or the New York
+scenario to a raid on the previous day's
+high the very next trading day we would
+look for the same scenario again looking
+for reasons to be bullish on a
+retracement lower going higher reaching
+for ultimately to this old high this
+would be an area of resistance okay
+or if it trades to that high and through
+it we'd still maintain looking for
+bullish scenarios buying looking for
+previous day's highs to be taken out or
+if we have price rally up to a degree
+either at this level or before it in
+creating a swing high once that forms we
+have to wait for that swing high to be
+broke on the upside okay there's going
+to be a lot of missed opportunities
+admittedly with this but it gives you a
+specific criteria on the work within ok
+employing the daily bias this is when
+it's bearish and we waiting again on the
+daily chart for a swing low on a daily
+to be broken so we have a swing low here
+again a daily candle that has a higher
+low to the left of it and a higher low
+to the right of it eventually as price
+trades through this this break in market
+structure it sets the stage for a
+bearish market condition okay so we're
+kind of like alerted to waiting for a
+sell scenario we wait for a retracement
+when we get the daily swing high formed
+the third can look at it makes a swing
+high we're going to anticipating that
+low to be violated the very next trading
+day key point is we don't want to see
+this swing high break a previous swing
+high immediately before the swing low
+that has broken a previous swing low
+okay so what we're doing is we're
+looking for a swing low broken here so
+now we have the ability to see the
+market trade to a new a new low then it
+retraces but will not break a swing high
+so now we're getting net three quarter
+back retracement okay so by itself it's
+like an optimal trade entry doesn't have
+to be 260 to 270 I'm searching some
+level it's better if it does but it
+doesn't require it you want to see the
+market trade up until it creates a daily
+swing high when that third candle forms
+at its close very next trading day
+you'll be watching for price to make an
+attempt to trade through this candles
+low and that remains the bias each
+trading day until I swing low forms or
+we trade down to this old low okay or
+another signifigant low so again
+summary its we're looking for a swing
+low to form on the daily chart and then
+it be broken then we're looking for a
+swing high to form but does not break a
+recent swing high so here's a swing high
+that doesn't come back the clear or
+break a previous swing high when to
+swing high forms we anticipate the third
+daily candle in the swing high right
+here we look for its load to be rated or
+traded through the following day and we
+look for the previous day's low to be
+rated each day until a new swing low on
+a daily forms or price reaches a key
+support resistance level now you're not
+going to have a set up every single
+trading day okay I've gotten a lot of
+emails so far since I've produced a
+first volume of this three-part series
+and the common complaint I'm getting is
+I'm not getting a setup every day and
+it's not been promised okay if you look
+at every major that's paired against the
+dollar you can get about three to four
+solid setups per week now that means
+that you're probably not going to get us
+up every single trading day chances are
+one pair among all the ones that are
+available will provide you a set up to
+study so you can practice in your demo
+account with it the emphasis is for you
+to remember that you'd only need about
+25 pips or so per week and if you risk
+2% of your account and it may be high
+admittedly for some of you but if you
+have grown in your understanding about
+what I'm teaching and you're willing to
+risk 2% it takes a little bit less than
+25 pips per week to double your
+or make 6% compounded monthly and I
+think that's the objective that folks
+should be looking for when you're new
+because it's realistic it's low but yet
+it still doubles the account over the
+course of a twelvemonth year so if we're
+looking for one good set up that would
+yield that 25 pips or so you only need
+one scalp one set up that does that now
+I started the current teaching week on
+Twitter kind of building the idea of
+making 50 pips per week if you frame
+your scalps in such a way that it allows
+you to aim for 25 pips you only really
+need to set up for a week don't you now
+I like that model personally because
+it's very close to what I do as a
+short-term or intraday trader I know the
+likelihood is I want to be trading on
+Tuesdays and Wednesdays if I can get my
+entire weekly objective which is 50 to
+75 pips per week if I can get that done
+in one day then I won't do any more
+trading after that regardless of what
+day of the week it is but usually I hone
+in on Tuesday and Wednesday because
+they're primarily the best days whether
+bullish or bearish if it's bullish for
+the week then I'm looking for the weekly
+low to form around Tuesday or Wednesday
+is New York open if I can anticipate a
+lower close or weekly bearish candle I'm
+shooting with an expectation that we're
+gonna be seeing lower prices by Friday's
+close relative to Sunday's opening then
+I'll be looking for Tuesday or Wednesday
+--zz price action to create the high of
+the week so if I can train and sync with
+that idea
+it also formulates a lot more conviction
+and confidence behind the setups that
+I'm looking to trade especially with
+what's being described here it's a
+rather simplistic approach it may have
+been an oversimplification on my part by
+way of creating this diagram but from an
+internal standpoint how I view the
+market place this is what I'm looking
+for
+so if I see them daily chart chances are
+the daily chart will probably sustain
+the move for a few days and you'll only
+need one trading day okay so if you
+having a scenario that's bullish or
+bearish relative to what I just
+described here so far in this video
+chances are you you're probably gonna
+have one day's worth of momentum and
+that's all you need so every single pair
+does not move lockstep to one another
+they're not always moving in tandem so
+what may be a good parent trade today
+may not be a pair that's really good to
+trade tomorrow but another pair may move
+in equal or better fashion in other
+words the setups are plenty but you have
+to allow them to be presented in price
+action from the daily chart and then not
+forcing it let's take a look over at the
+charts I'll give you an example of what
+it looks like and we can use the kill
+zones okay we're looking at the table
+this is a daily chart this stroll
+through just family random place it
+doesn't make a difference where we start
+out but I want you to take a look at the
+price action here and we're going to
+look at this swing low right here and
+it's on the heels of a previous
+short-term high okay so we have a
+short-term high here lower high to the
+left lower high to the right highest
+high in the middle it breaks that okay
+so now we're on a buy watch for scalping
+this is a swing high that's broken and
+we have to wait for a swing low to form
+after this is broken so we're gonna be
+anticipating a retracement after this
+run-up says price starts to drop down
+we have a preliminary swing low here
+okay so this candle is the third one we
+need to make sure we wait for price to
+trade through this candle is high the
+very next day it doesn't do that okay
+now we have another candle form a
+potential swing low here so this candle
+here we have to wait for this candle is
+high to be traded through very next
+candle it doesn't do it it does it here
+so now we can be a buyer here with a
+Scout running previous day's high which
+is this one okay so one July 24th 2017
+that high again coming in at 130 57
+that's where the liquidity run is going
+to be right there this candle on the
+25th of July is where we'll be looking
+for the set up right there okay and
+we're going to drop down into a smaller
+time frame we use a 15-minute time frame
+okay and I'll scrunch this up the day
+dividers in you guys can see it so
+previous day's high is right here so
+I'll put a horizontal line on the chart
+to facilitate that okay so here's where
+the liquidity is we're running for 30 57
+okay this day here we're looking for a
+scenario to get long to run that liquidy
+pool okay and we have this again it's
+the liquidly poor wrist we're reaching
+for previous day's high on this trading
+day when I use the market
+sessions I'm looking for London setups
+and newer setups primarily this is a
+London session low and I'll let you see
+that here that's in London and we're
+gonna use that as I mentioned in the
+volume one I use session highs and lows
+and this is the highest portion of the
+day in terms of a 15 minute candle you
+just put it right here you guys can see
+it so I'm using this one and this one
+framing the entire price moon so as
+price starts this day here I'm not
+concerned about anything until it gets
+down into the optimal trade entry 62%
+tracing level respectively 70.5 and 79%
+okay you can see it price trades it hits
+it here this candle comes in exactly
+9:45 that's London and we're going into
+a nice run into previous day's high okay
+so you can see that was a nice little
+scalp it offered as much as 10 20 30 40
+pips to get to the high and if we look
+for 10 to 20 pips of a sweep above this
+high it takes us 10 20 here so 20 pips
+40 pips 60 pips 70 pips or so in terms
+of potential price range that in itself
+is it for the week for me that would be
+it why wouldn't you do anything else and
+it's hard to believe but that's how I
+operate
+I don't look for a whole lot of setups
+per week cuz I'm content with you know
+doing one thing well and there it is now
+if this were a more conservative
+approach you could be looking for the
+long down here based on the alcohol
+trade entry and reaching just to the old
+high now if that's the case say you're
+filled at well just rounded to one
+thirty twenty that again is getting out
+at 57
+it's 37 pips or so okay almost 40 pips
+with us say 40 pips you only need to do
+one more trade for the week for 10 pips
+to get a 50 pip net return for the week
+now there's a lot of folks that will say
+don't set targets don't set goals for
+daily or weekly because you don't know
+what the markets going to do well I
+would submit that that's partially true
+we don't know with any assurity what the
+markets going to do but we do have
+pretty strong probabilities of wherever
+the market may reach for and if we can
+frame the idea of where we're trying to
+get in at based on time and price
+killzone and such a optimal trade entry
+price and where we're reaching for it
+doesn't that not offer us a definitive
+way of determining what could be
+reasonably expected for that particular
+setup and if we know that we're looking
+at intraday setup like this there's
+typically five days per week unless it's
+a holiday or the markets are not trading
+because of some other bank holiday or
+whatever we don't want to trade it we
+can see many instances where 25 to 50
+pips is rather easy to get now it's when
+we get into the I want to make 250 to
+500 pips per week then it becomes a
+little daunting in terms of a task so I
+think by focusing on 20-25 pips per
+setup in an aiming for two good ones per
+week I think 50 pips is a really low
+hanging fruit reachable achievable and
+certainly realistic in the scope of a
+developing trader will you get it every
+week no will you get it right out the
+gate starting using my concepts no but
+over time you will eventually grow into
+that in an expectancy for a nice return
+of 50 pips per week you can frame your
+entire career on that
