@@ -1,0 +1,316 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © PCX & ICT Combined Daily Bias
+
+//@version=6
+indicator("PCX + ICT Combined Bias", overlay=true, max_lines_count=500, max_labels_count=500, max_boxes_count=500)
+
+// ─── INPUTS ─────────────────────────────────────────────────────────────────
+
+// Model toggles
+grp_models = "Models"
+showPCX       = input.bool(true, "Show PCX Expansion", group=grp_models)
+showICT       = input.bool(true, "Show ICT Daily Bias", group=grp_models)
+showCombined  = input.bool(true, "Show Combined Signal", group=grp_models)
+
+// Visuals
+grp_vis = "Visuals"
+showBarColor   = input.bool(true, "Bar Coloring", group=grp_vis)
+showTargetLines = input.bool(true, "Target Lines (Prev Day H/L)", group=grp_vis)
+showSwingPoints = input.bool(true, "ICT Swing Points", group=grp_vis)
+showSwitchLabels = input.bool(true, "ICT State Switch Labels", group=grp_vis)
+showSignalShapes = input.bool(true, "Combined Signal Arrows", group=grp_vis)
+showInfoTable  = input.bool(true, "Info Table", group=grp_vis)
+
+// Filter
+grp_filt = "Filters"
+wickThreshold = input.float(0.4, "Abnormal Wick Threshold", minval=0.1, maxval=0.9, step=0.05, group=grp_filt, tooltip="Bars with upper or lower wick > this fraction of total range are filtered out of PCX predictions")
+
+// Colors
+grp_col = "Colors"
+colCombinedLong  = input.color(color.new(#00C853, 0), "Combined Long", group=grp_col)
+colCombinedShort = input.color(color.new(#FF1744, 0), "Combined Short", group=grp_col)
+colPCXOnly       = input.color(color.new(#81C784, 50), "PCX Only", group=grp_col)
+colICTOnly       = input.color(color.new(#64B5F6, 50), "ICT Only", group=grp_col)
+colNeutral       = input.color(color.new(#9E9E9E, 80), "Neutral", group=grp_col)
+colTargetHigh    = input.color(color.new(#00E676, 30), "Target High Line", group=grp_col)
+colTargetLow     = input.color(color.new(#FF5252, 30), "Target Low Line", group=grp_col)
+colSwingHigh     = input.color(color.new(#FF9800, 0), "Swing High Marker", group=grp_col)
+colSwingLow      = input.color(color.new(#2196F3, 0), "Swing Low Marker", group=grp_col)
+
+// ─── PCX EXPANSION MODEL ────────────────────────────────────────────────────
+//
+// State machine:
+//   - Track whether the prior close broke above prev high (bullish=1) or below prev low (bearish=-1)
+//   - Based on current state, predict next bar's target:
+//     Bullish + close >= prev_high → target HIGH (continuation)
+//     Bullish + close <  prev_high → target LOW  (failure)
+//     Bearish + close <= prev_low  → target LOW  (continuation)
+//     Bearish + close >  prev_low  → target HIGH (failure)
+//   - State updates: close >= prev_high → state=1, close <= prev_low → state=-1, else unchanged
+
+var int   pcxState  = 0   // 0=neutral, 1=bullish, -1=bearish
+var int   pcxTarget = 0   // 1=target high, -1=target low, 0=no prediction
+
+float prevH = high[1]
+float prevL = low[1]
+
+// Abnormal wick filter (applied to the bar MAKING the prediction, i.e. current bar)
+float barRange  = high - low
+float upperWick = high - math.max(open, close)
+float lowerWick = math.min(open, close) - low
+bool  isAbnormal = barRange > 0 ? (upperWick > wickThreshold * barRange) or (lowerWick > wickThreshold * barRange) : false
+
+// Calculate target based on state we ENTERED with
+int thisPcxTarget = 0
+if pcxState == 1
+    thisPcxTarget := close >= prevH ? 1 : -1
+else if pcxState == -1
+    thisPcxTarget := close <= prevL ? -1 : 1
+// else neutral → no prediction
+
+pcxTarget := thisPcxTarget
+
+// Update state for NEXT bar
+if close >= prevH
+    pcxState := 1
+else if close <= prevL
+    pcxState := -1
+// else: state unchanged (inside bar)
+
+// PCX prediction for TOMORROW, adjusted by wick filter
+int pcxSignal = isAbnormal ? 0 : pcxTarget   // 1=expect high sweep, -1=expect low sweep
+
+
+// ─── ICT DAILY BIAS ENGINE ──────────────────────────────────────────────────
+//
+// Swing-point state machine:
+//   States: NEUTRAL(0), BULLISH_WATCH(1), BULLISH_ACTIVE(2), BEARISH_WATCH(3), BEARISH_ACTIVE(4)
+//
+// Swing detection: 3-bar pivot (middle bar high > both neighbors = swing high,
+//                                middle bar low < both neighbors = swing low)
+//
+// Transitions:
+//   NEUTRAL → BULLISH_WATCH: price breaks above last swing high
+//   NEUTRAL → BEARISH_WATCH: price breaks below last swing low
+//   BULLISH_WATCH: new swing low detected → if higher than last SL, set C3 = current bar high
+//                  if C3 broken to upside → BULLISH_ACTIVE
+//                  if new SL breaks prev SL → back to NEUTRAL
+//   BULLISH_ACTIVE: price breaks last swing low → BEARISH_WATCH (invalidated)
+//   BEARISH_WATCH: new swing high detected → if lower than last SH, set C3 = current bar low
+//                  if C3 broken to downside → BEARISH_ACTIVE
+//                  if new SH breaks prev SH → back to NEUTRAL
+//   BEARISH_ACTIVE: price breaks last swing high → BULLISH_WATCH (invalidated)
+
+var int   ictState = 0        // 0=NEUTRAL, 1=BULL_WATCH, 2=BULL_ACTIVE, 3=BEAR_WATCH, 4=BEAR_ACTIVE
+var int   ictBias  = 0        // 0=NONE, 1=LONG, -1=SHORT
+var float lastSH_price = na   // last confirmed swing high price
+var int   lastSH_bar   = na   // bar_index of last swing high
+var float lastSL_price = na   // last confirmed swing low price
+var int   lastSL_bar   = na   // bar_index of last swing low
+var float pendingC3H   = na   // bullish watch: need price > this to activate
+var float pendingC3L   = na   // bearish watch: need price < this to activate
+
+// Swing detection on the MIDDLE bar of the last 3 bars (bar[1] is the potential pivot)
+bool newSwingHigh = bar_index >= 2 and high[1] > high[2] and high[1] > high[0]
+bool newSwingLow  = bar_index >= 2 and low[1] < low[2] and low[1] < low[0]
+
+float newSH_price = newSwingHigh ? high[1] : na
+float newSL_price = newSwingLow  ? low[1]  : na
+int   newSH_bar   = newSwingHigh ? bar_index - 1 : na
+int   newSL_bar   = newSwingLow  ? bar_index - 1 : na
+
+int prevIctState = ictState
+
+// State machine transitions
+if ictState == 0 // NEUTRAL
+    if not na(lastSH_price) and high > lastSH_price
+        ictState := 1  // → BULLISH_WATCH
+        ictBias  := 0
+        pendingC3H := na
+    else if not na(lastSL_price) and low < lastSL_price
+        ictState := 3  // → BEARISH_WATCH
+        ictBias  := 0
+        pendingC3L := na
+
+else if ictState == 1 // BULLISH_WATCH
+    if newSwingLow
+        if na(lastSL_price) or newSL_price >= lastSL_price
+            // Valid higher swing low — C3 is the current bar's high
+            pendingC3H := high
+        else
+            // Swing low broke previous swing low — invalidated
+            ictState := 0
+            ictBias  := 0
+            pendingC3H := na
+    // Check if C3 high has been broken
+    if not na(pendingC3H) and high > pendingC3H
+        ictState := 2  // → BULLISH_ACTIVE
+        ictBias  := 1
+        pendingC3H := na
+
+else if ictState == 2 // BULLISH_ACTIVE
+    ictBias := 1
+    // Invalidation: price breaks a confirmed swing low
+    if not na(lastSL_price) and low < lastSL_price
+        ictState := 3  // → BEARISH_WATCH
+        ictBias  := 0
+        pendingC3L := na
+
+else if ictState == 3 // BEARISH_WATCH
+    if newSwingHigh
+        if na(lastSH_price) or newSH_price <= lastSH_price
+            // Valid lower swing high — C3 is the current bar's low
+            pendingC3L := low
+        else
+            // Swing high broke previous swing high — invalidated
+            ictState := 0
+            ictBias  := 0
+            pendingC3L := na
+    // Check if C3 low has been broken
+    if not na(pendingC3L) and low < pendingC3L
+        ictState := 4  // → BEARISH_ACTIVE
+        ictBias  := -1
+        pendingC3L := na
+
+else if ictState == 4 // BEARISH_ACTIVE
+    ictBias := -1
+    // Invalidation: price breaks a confirmed swing high
+    if not na(lastSH_price) and high > lastSH_price
+        ictState := 1  // → BULLISH_WATCH
+        ictBias  := 0
+        pendingC3H := na
+
+// Update reference swing points AFTER state transitions
+if newSwingHigh
+    lastSH_price := newSH_price
+    lastSH_bar   := newSH_bar
+if newSwingLow
+    lastSL_price := newSL_price
+    lastSL_bar   := newSL_bar
+
+
+// ─── COMBINED SIGNAL ────────────────────────────────────────────────────────
+// 
+// The PCX target on bar[i] predicts bar[i+1]'s outcome.
+// The ICT bias on bar[i] predicts bar[i]'s outcome.
+// To align for the SAME day: use PCX target from bar[i-1] with ICT bias on bar[i].
+
+int pcxPredForToday = nz(pcxTarget[1])  // PCX target set yesterday, predicts today
+bool pcxFilteredForToday = isAbnormal[1] == false // wick filter on yesterday's bar (na → false)
+
+int combinedSignal = 0
+if pcxPredForToday == 1 and ictBias == 1 and pcxFilteredForToday
+    combinedSignal := 1   // Both agree LONG + filtered
+else if pcxPredForToday == -1 and ictBias == -1 and pcxFilteredForToday
+    combinedSignal := -1  // Both agree SHORT + filtered
+
+
+// ─── VISUALS: TARGET LINES ──────────────────────────────────────────────────
+
+// Draw previous day's high and low as horizontal target lines
+var line lineTargetHigh = na
+var line lineTargetLow  = na
+
+if showTargetLines
+    if not na(lineTargetHigh)
+        line.set_x2(lineTargetHigh, bar_index)
+    if not na(lineTargetLow)
+        line.set_x2(lineTargetLow, bar_index)
+    
+    // Start new lines at each bar for continuously updated levels
+    if barstate.isconfirmed
+        lineTargetHigh := line.new(bar_index, prevH, bar_index + 1, prevH, color=colTargetHigh, style=line.style_dashed, width=1)
+        lineTargetLow  := line.new(bar_index, prevL, bar_index + 1, prevL, color=colTargetLow, style=line.style_dashed, width=1)
+
+
+// ─── VISUALS: ICT SWING POINTS ──────────────────────────────────────────────
+
+if showSwingPoints
+    if newSwingHigh
+        label.new(bar_index - 1, high[1], "SH", color=colSwingHigh, textcolor=color.white, style=label.style_label_down, size=size.tiny)
+    if newSwingLow
+        label.new(bar_index - 1, low[1], "SL", color=colSwingLow, textcolor=color.white, style=label.style_label_up, size=size.tiny)
+
+
+// ─── VISUALS: ICT STATE SWITCH LABELS ───────────────────────────────────────
+
+stateLabel(int s) =>
+    switch s
+        0 => "NEUTRAL"
+        1 => "BULL WATCH"
+        2 => "BULL ACTIVE"
+        3 => "BEAR WATCH"
+        4 => "BEAR ACTIVE"
+        => "?"
+
+if showSwitchLabels and ictState != prevIctState
+    string txt = stateLabel(ictState)
+    color  lblCol = ictState == 2 ? colCombinedLong : ictState == 4 ? colCombinedShort : color.gray
+    label.new(bar_index, ictState == 3 or ictState == 4 ? high + (barRange * 0.5) : low - (barRange * 0.5), txt, 
+         color=lblCol, textcolor=color.white, 
+         style=ictState == 3 or ictState == 4 ? label.style_label_down : label.style_label_up, 
+         size=size.small)
+
+
+// ─── VISUALS: COMBINED SIGNAL ARROWS ────────────────────────────────────────
+
+if showSignalShapes and showCombined
+    if combinedSignal == 1
+        label.new(bar_index, low - (barRange * 0.3), "▲ COMBINED\nLONG", color=colCombinedLong, textcolor=color.white, style=label.style_label_up, size=size.normal)
+    else if combinedSignal == -1
+        label.new(bar_index, high + (barRange * 0.3), "▼ COMBINED\nSHORT", color=colCombinedShort, textcolor=color.white, style=label.style_label_down, size=size.normal)
+
+
+// ─── VISUALS: BAR COLORING ──────────────────────────────────────────────────
+
+color barCol = na
+if showBarColor
+    if combinedSignal == 1 and showCombined
+        barCol := colCombinedLong
+    else if combinedSignal == -1 and showCombined
+        barCol := colCombinedShort
+    else if ictBias == 1 and showICT
+        barCol := colICTOnly
+    else if ictBias == -1 and showICT
+        barCol := color.new(#EF5350, 50)
+    else if pcxSignal == 1 and showPCX
+        barCol := colPCXOnly
+    else if pcxSignal == -1 and showPCX
+        barCol := color.new(#E57373, 50)
+
+barcolor(barCol)
+
+
+// ─── VISUALS: INFO TABLE ────────────────────────────────────────────────────
+
+if showInfoTable
+    var table infoTbl = table.new(position.top_right, 2, 5, bgcolor=color.new(#1E1E1E, 10), border_color=color.new(#424242, 0), border_width=1, frame_color=color.new(#616161, 0), frame_width=1)
+
+    if barstate.islast
+        // Header
+        table.cell(infoTbl, 0, 0, "PCX + ICT", text_color=color.white, text_size=size.small, bgcolor=color.new(#333333, 0))
+        table.cell(infoTbl, 1, 0, "Status", text_color=color.white, text_size=size.small, bgcolor=color.new(#333333, 0))
+        
+        // PCX State
+        string pcxTxt = pcxState == 1 ? "BULLISH" : pcxState == -1 ? "BEARISH" : "NEUTRAL"
+        color  pcxCol = pcxState == 1 ? color.new(#66BB6A, 0) : pcxState == -1 ? color.new(#EF5350, 0) : color.gray
+        table.cell(infoTbl, 0, 1, "PCX State", text_color=color.white, text_size=size.tiny)
+        table.cell(infoTbl, 1, 1, pcxTxt, text_color=pcxCol, text_size=size.tiny)
+        
+        // PCX Target
+        string tgtTxt = pcxTarget == 1 ? "HIGH ↑" : pcxTarget == -1 ? "LOW ↓" : "—"
+        color  tgtCol = pcxTarget == 1 ? color.new(#66BB6A, 0) : pcxTarget == -1 ? color.new(#EF5350, 0) : color.gray
+        table.cell(infoTbl, 0, 2, "PCX Target", text_color=color.white, text_size=size.tiny)
+        table.cell(infoTbl, 1, 2, tgtTxt + (isAbnormal ? " ⚠" : ""), text_color=tgtCol, text_size=size.tiny)
+        
+        // ICT Bias
+        string ictTxt = stateLabel(ictState)
+        color  ictCol = ictBias == 1 ? color.new(#66BB6A, 0) : ictBias == -1 ? color.new(#EF5350, 0) : color.gray
+        table.cell(infoTbl, 0, 3, "ICT Bias", text_color=color.white, text_size=size.tiny)
+        table.cell(infoTbl, 1, 3, ictTxt, text_color=ictCol, text_size=size.tiny)
+        
+        // Combined Signal
+        string cmbTxt = combinedSignal == 1 ? "✓ LONG" : combinedSignal == -1 ? "✓ SHORT" : "—"
+        color  cmbCol = combinedSignal == 1 ? colCombinedLong : combinedSignal == -1 ? colCombinedShort : color.gray
+        table.cell(infoTbl, 0, 4, "Combined", text_color=color.white, text_size=size.tiny)
+        table.cell(infoTbl, 1, 4, cmbTxt, text_color=cmbCol, text_size=size.tiny)

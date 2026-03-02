@@ -1,0 +1,41 @@
+
+======================================================================
+SUMMARY
+======================================================================
+
+  LONG: 83/105 hit (79.0%)
+
+  SHORT: 62/80 hit (77.5%)
+
+── Time to Target (all hits, n=145) ──
+  Mean    :    742 min  (06:22)
+  Median  :    630 min  (04:30)
+  P25     :    485 min  (02:05)
+  P75     :    931 min  (09:31)
+  P90     :   1135 min  (12:54)
+
+  LONG hits (n=83):
+    Mean:      726 min  (06:06)
+    Median:    621 min  (04:21)
+
+  SHORT hits (n=62):
+    Mean:      764 min  (06:44)
+    Median:    664 min  (05:04)
+
+── Session Breakdown (hits) ──
+  OTHER   :   75  ( 51.7%)
+  LONDON  :   42  ( 29.0%)
+  NYAM    :   20  ( 13.8%)
+  ASIA    :    4  (  2.8%)
+  LUNCH   :    2  (  1.4%)
+  PM      :    2  (  1.4%)
+
+── Overshoot (hits) ──
+  Mean points:  143.33
+  Mean % of prior range: 63.5%
+
+── Failures (n=40) ──
+  Inside bars (no breakout either way): 28
+  Opposite target hit instead:          12
+  Other (broke out but didn't reach):   0
+

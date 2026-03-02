@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCX + ICT Aligned Signal - Timing Analysis</title>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+        background: #0a0e17;
+        color: #c9d1d9;
+        padding: 24px;
+        line-height: 1.6;
+    }
+    .header {
+        text-align: center;
+        padding: 32px 0;
+        border-bottom: 1px solid #21262d;
+        margin-bottom: 32px;
+    }
+    .header h1 {
+        font-size: 28px;
+        color: #e6edf3;
+        margin-bottom: 8px;
+    }
+    .header .subtitle {
+        color: #7d8590;
+        font-size: 14px;
+    }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+    .stat-card {
+        background: #161b22;
+        border: 1px solid #21262d;
+        border-radius: 8px;
+        padding: 16px;
+        text-align: center;
+    }
+    .stat-card .label {
+        font-size: 12px;
+        color: #7d8590;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .stat-card .value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #e6edf3;
+    }
+    .stat-card .value.positive { color: #3fb950; }
+    .stat-card .value.negative { color: #f85149; }
+    .stat-card .value.neutral { color: #d29922; }
+    .stat-card .detail {
+        font-size: 11px;
+        color: #7d8590;
+        margin-top: 4px;
+    }
+    .section {
+        background: #161b22;
+        border: 1px solid #21262d;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+    .section h2 {
+        font-size: 18px;
+        color: #e6edf3;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #21262d;
+    }
+    .section h3 {
+        font-size: 14px;
+        color: #c9d1d9;
+        margin-bottom: 12px;
+        margin-top: 20px;
+    }
+    .chart-container {
+        width: 100%;
+        height: 350px;
+        margin-bottom: 16px;
+    }
+    .chart-container.tall {
+        height: 400px;
+    }
+    .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+    @media (max-width: 800px) {
+        .two-col { grid-template-columns: 1fr; }
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 16px;
+        font-size: 14px;
+    }
+    th, td {
+        padding: 10px 14px;
+        text-align: left;
+        border-bottom: 1px solid #21262d;
+    }
+    th {
+        color: #7d8590;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+    td { color: #c9d1d9; }
+    tr:last-child td { border-bottom: none; }
+    .highlight { color: #e6edf3; font-weight: 600; }
+    .green { color: #3fb950; }
+    .red { color: #f85149; }
+    .yellow { color: #d29922; }
+    .finding-box {
+        background: #0d1117;
+        border-left: 3px solid #3fb950;
+        padding: 16px 20px;
+        margin: 16px 0;
+        border-radius: 0 6px 6px 0;
+    }
+    .finding-box.warn {
+        border-left-color: #d29922;
+    }
+    .finding-box p {
+        margin: 0;
+        font-size: 14px;
+    }
+    .finding-box .finding-label {
+        font-size: 11px;
+        color: #7d8590;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .method-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    .method-card {
+        background: #0d1117;
+        border: 1px solid #21262d;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .method-card h4 {
+        color: #e6edf3;
+        font-size: 15px;
+        margin-bottom: 8px;
+    }
+    .method-card p {
+        font-size: 13px;
+        color: #7d8590;
+        margin-bottom: 0;
+    }
+    .method-card .acc {
+        font-size: 20px;
+        font-weight: 700;
+        margin-top: 8px;
+    }
+    .tag {
+        display: inline-block;
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+    .tag.long { background: rgba(63, 185, 80, 0.15); color: #3fb950; }
+    .tag.short { background: rgba(248, 81, 73, 0.15); color: #f85149; }
+    .tag.independent { background: rgba(210, 153, 34, 0.15); color: #d29922; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>PCX + ICT Aligned Signal</h1>
+    <div class="subtitle">Timing Analysis &mdash; NQ Futures &mdash; 1,627 daily bars (Aug 2020 &ndash; Nov 2025)</div>
+</div>
+
+<!-- ── Top-level stats ─────────────────────────────────────── -->
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="label">Aligned Days</div>
+        <div class="value">185</div>
+        <div class="detail">105 Long / 80 Short</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Combined Hit Rate</div>
+        <div class="value positive">78.4%</div>
+        <div class="detail">145 / 185</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Median Time to Target</div>
+        <div class="value neutral">4:30 AM</div>
+        <div class="detail">630 min from session open</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Median Overshoot</div>
+        <div class="value">36.1%</div>
+        <div class="detail">of prior day's range</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Dominant Failure</div>
+        <div class="value negative">Inside Bar</div>
+        <div class="detail">70% of all failures</div>
+    </div>
+</div>
+
+<!-- ── Models Overview ─────────────────────────────────────── -->
+
+<div class="section">
+    <h2>Models Under Test</h2>
+    <div class="method-grid">
+        <div class="method-card">
+            <h4>PCX Expansion Model</h4>
+            <p>2-state Markov machine. Tracks whether the prior day closed above/below the previous day's high/low, then predicts the next day's directional expansion target. Filtered by abnormal wick detection (&gt;40% of range).</p>
+            <div class="acc green">71.2% <span style="font-size:13px;font-weight:400;color:#7d8590">filtered accuracy</span></div>
+        </div>
+        <div class="method-card">
+            <h4>ICT Daily Bias</h4>
+            <p>5-state swing-point machine. Identifies bullish/bearish active states through swing high/low structure. When active, predicts the market will run the previous day's liquidity level.</p>
+            <div class="acc green">63.8% <span style="font-size:13px;font-weight:400;color:#7d8590">bullish active</span> / <span style="font-size:13px;font-weight:400;color:#7d8590">61.4% bearish active</span></div>
+        </div>
+    </div>
+    <div class="finding-box">
+        <div class="finding-label">Independence</div>
+        <p>Pearson r = &minus;0.045 (p = 0.29), Chi-squared p = 0.33, Cramer&rsquo;s V = 0.04. <span class="tag independent">Statistically Independent</span> &mdash; the models are not measuring the same thing.</p>
+    </div>
+</div>
+
+<!-- ── Hit Rates ───────────────────────────────────────────── -->
+
+<div class="section">
+    <h2>Hit Rates: Standalone vs Combined</h2>
+    <table>
+        <thead>
+            <tr><th>Configuration</th><th>Long / High</th><th>N</th><th>Short / Low</th><th>N</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>ICT alone</td><td>63.8%</td><td>312</td><td>61.4%</td><td>236</td></tr>
+            <tr><td>PCX alone (filtered)</td><td>74.8%</td><td>497</td><td>66.7%</td><td>402</td></tr>
+            <tr><td class="highlight">Combined (agree + filtered)</td><td class="green highlight">79.0%</td><td>105</td><td class="green highlight">77.5%</td><td>80</td></tr>
+        </tbody>
+    </table>
+    <div class="finding-box">
+        <div class="finding-label">Key Result</div>
+        <p>Combined signal significantly beats ICT alone on both sides (p &lt; 0.002) and beats PCX alone on the short side (p = 0.024). The trade-off: only 185 qualifying days over 5 years.</p>
+    </div>
+</div>
+
+<!-- ── Timing Analysis ─────────────────────────────────────── -->
+
+<div class="section">
+    <h2>Timing: When Does the Target Get Hit?</h2>
+
+    <div class="chart-container tall" id="timing-hist"></div>
+
+    <table>
+        <thead>
+            <tr><th>Percentile</th><th>Minutes from Open</th><th>Clock Time ET</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>P25</td><td>485</td><td>02:05 AM</td></tr>
+            <tr><td class="highlight">Median</td><td class="highlight">630</td><td class="highlight yellow">04:30 AM</td></tr>
+            <tr><td>Mean</td><td>742</td><td>06:22 AM</td></tr>
+            <tr><td>P75</td><td>931</td><td>09:31 AM</td></tr>
+            <tr><td>P90</td><td>1,135</td><td>12:54 PM</td></tr>
+        </tbody>
+    </table>
+
+    <div class="two-col">
+        <div>
+            <h3>Long Hits (n=83)</h3>
+            <table>
+                <tr><td>Mean</td><td>726 min</td><td class="yellow">06:06 AM</td></tr>
+                <tr><td>Median</td><td>621 min</td><td class="yellow">04:21 AM</td></tr>
+            </table>
+        </div>
+        <div>
+            <h3>Short Hits (n=62)</h3>
+            <table>
+                <tr><td>Mean</td><td>764 min</td><td class="yellow">06:44 AM</td></tr>
+                <tr><td>Median</td><td>664 min</td><td class="yellow">05:04 AM</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="finding-box">
+        <div class="finding-label">Finding</div>
+        <p>The median target hit is at <strong>4:30 AM ET</strong> &mdash; deep in the London session. Half of all targets are taken before New York opens. By lunch (12:54 PM), 90% of hits are done.</p>
+    </div>
+</div>
+
+<!-- ── Session Breakdown ───────────────────────────────────── -->
+
+<div class="section">
+    <h2>Session Breakdown</h2>
+    <div class="two-col">
+        <div class="chart-container" id="session-pie" style="height:320px"></div>
+        <div>
+            <table>
+                <thead>
+                    <tr><th>Session</th><th>Hits</th><th>%</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>OTHER (overnight / gaps)</td><td class="highlight">75</td><td class="highlight">51.7%</td></tr>
+                    <tr><td>LONDON (02:00-04:59)</td><td>42</td><td>29.0%</td></tr>
+                    <tr><td>NYAM (09:30-10:59)</td><td>20</td><td>13.8%</td></tr>
+                    <tr><td>ASIA (19:00-23:59)</td><td>4</td><td>2.8%</td></tr>
+                    <tr><td>LUNCH (12:00-12:59)</td><td>2</td><td>1.4%</td></tr>
+                    <tr><td>PM (13:00-14:59)</td><td>2</td><td>1.4%</td></tr>
+                </tbody>
+            </table>
+            <div class="finding-box warn">
+                <div class="finding-label">Note</div>
+                <p>OTHER is large because session tags have gaps (e.g. 05:00&ndash;09:29 ET is untagged). Combined with LONDON, <strong>~81% of targets are hit before 9:30 AM ET</strong>.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Overshoot ───────────────────────────────────────────── -->
+
+<div class="section">
+    <h2>Overshoot: How Far Past the Target?</h2>
+    <div class="chart-container" id="overshoot-hist"></div>
+    <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="stat-card">
+            <div class="label">Mean Overshoot</div>
+            <div class="value">143 pts</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Mean % of Prior Range</div>
+            <div class="value">63.5%</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Median % of Prior Range</div>
+            <div class="value">36.1%</div>
+        </div>
+    </div>
+    <div class="finding-box">
+        <div class="finding-label">Finding</div>
+        <p>Right-skewed distribution. The typical hit overshoots by about a third of yesterday&rsquo;s range. Some days blow through significantly &mdash; the mean (63.5%) is nearly double the median (36.1%).</p>
+    </div>
+</div>
+
+<!-- ── Failure Analysis ────────────────────────────────────── -->
+
+<div class="section">
+    <h2>Failure Analysis (40 Misses)</h2>
+    <div class="two-col">
+        <div class="chart-container" id="failure-pie" style="height:300px"></div>
+        <div>
+            <table>
+                <thead>
+                    <tr><th>Type</th><th>Count</th><th>% of Failures</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Inside bar (no expansion)</td><td class="highlight">28</td><td class="red highlight">70.0%</td></tr>
+                    <tr><td>Opposite target hit</td><td>12</td><td>30.0%</td></tr>
+                    <tr><td>Moved toward but fell short</td><td>0</td><td>0.0%</td></tr>
+                </tbody>
+            </table>
+            <div class="finding-box">
+                <div class="finding-label">Finding</div>
+                <p>Failures are binary: either the market consolidates entirely (70%) or reverses (30%). <strong>Zero cases</strong> of &ldquo;almost got there.&rdquo; The target is either clearly hit or clearly missed.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Volatility: Hits vs Misses ──────────────────────────── -->
+
+<div class="section">
+    <h2>Volatility: Hits vs Misses</h2>
+    <div class="two-col">
+        <div class="chart-container" id="vol-compare" style="height:280px"></div>
+        <div>
+            <table>
+                <thead>
+                    <tr><th>Metric</th><th>Hits</th><th>Misses</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Mean day range (% of close)</td><td class="green">1.86%</td><td class="red">1.40%</td></tr>
+                    <tr><td>Mean range / ATR</td><td class="green">1.07x</td><td class="red">0.81x</td></tr>
+                </tbody>
+            </table>
+            <div class="finding-box">
+                <div class="finding-label">Implication</div>
+                <p>Hit days expand more than average (1.07x ATR). Miss days are below-average expansion (0.81x). Momentum on the signal candle may be a viable pre-filter for eliminating inside-bar failures.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Current Findings Summary ─────────────────────────────── -->
+
+<div class="section">
+    <h2>Current Findings Summary</h2>
+
+    <div class="finding-box">
+        <div class="finding-label">1. Both models have independent predictive power</div>
+        <p>PCX (71.2% filtered) and ICT (63.8% bullish, 61.4% bearish) both beat baseline at statistically significant levels. They are not correlated (Cramer&rsquo;s V = 0.04) &mdash; combining them is valid.</p>
+    </div>
+
+    <div class="finding-box">
+        <div class="finding-label">2. Combined signal reaches ~79% accuracy</div>
+        <p>When both agree on direction and the PCX wick filter passes, accuracy jumps to 79.0% long and 77.5% short. The cost: only ~37 qualifying days per year on average.</p>
+    </div>
+
+    <div class="finding-box">
+        <div class="finding-label">3. Targets resolve overnight, not in NY</div>
+        <p>Median hit time is 4:30 AM ET. 81% of targets are taken before the NY open. The PM session is irrelevant. This is a London-session phenomenon.</p>
+    </div>
+
+    <div class="finding-box">
+        <div class="finding-label">4. Failures are consolidation, not misdirection</div>
+        <p>70% of failures are inside bars. The market doesn&rsquo;t fake the wrong direction &mdash; it just doesn&rsquo;t move. A volatility filter may eliminate many of these.</p>
+    </div>
+
+    <div class="finding-box warn">
+        <div class="finding-label">5. Open question: regime dependence</div>
+        <p>All accuracy figures are pooled across 5 years of varying market conditions. Whether the 79% rate holds in trending vs ranging markets is untested. This is the critical next investigation.</p>
+    </div>
+</div>
+
+<!-- ── Plotly Charts ────────────────────────────────────────── -->
+
+<script>
+var plotConfig = { responsive: true, displayModeBar: false };
+var plotLayout = {
+    paper_bgcolor: 'transparent',
+    plot_bgcolor: 'transparent',
+    font: { color: '#7d8590' },
+    margin: { t: 10, r: 20, b: 50, l: 60 },
+    xaxis: { gridcolor: '#21262d' },
+    yaxis: { gridcolor: '#21262d' }
+};
+
+// Timing histogram
+var longMins = [458,512,870,1030,423,621,454,758,544,604,1535,411,930,498,1440,675,608,698,1440,585,486,417,454,542,724,1774,644,837,567,448,578,1038,605,656,827,360,873,1071,931,433,957,630,481,931,935,389,579,870,485,930,506,1009,428,871,870,1015,1295,614,505,395,559,362,532,831,927,462,870,537,1042,930,728,817,1264,448,1155,447,382,390,360,1440,431,859,431];
+var shortMins = [421,873,980,832,572,591,406,484,1696,967,819,360,972,935,1441,485,1272,551,555,388,1440,505,870,930,380,488,571,513,456,1792,894,985,582,568,449,1082,481,386,416,561,947,801,870,1104,745,935,1238,433,942,668,488,1021,455,509,931,808,991,398,1440,539,525,660];
+
+// Convert minutes to clock time labels
+function minsToTime(m) {
+    var h = Math.floor(m / 60) % 24;
+    var hour = 18 + Math.floor(m / 60);
+    var totalHour = (18 + Math.floor(m / 60)) % 24;
+    var min = m % 60;
+    var ampm = totalHour >= 12 ? 'PM' : 'AM';
+    var displayHour = totalHour % 12 || 12;
+    return displayHour + ':' + (min < 10 ? '0' : '') + min + ' ' + ampm;
+}
+
+Plotly.newPlot('timing-hist', [
+    {
+        x: longMins,
+        name: 'Long',
+        type: 'histogram',
+        xbins: { start: 300, end: 1800, size: 60 },
+        marker: { color: 'rgba(63, 185, 80, 0.6)', line: { color: '#3fb950', width: 1 } },
+        opacity: 0.8
+    },
+    {
+        x: shortMins,
+        name: 'Short',
+        type: 'histogram',
+        xbins: { start: 300, end: 1800, size: 60 },
+        marker: { color: 'rgba(248, 81, 73, 0.6)', line: { color: '#f85149', width: 1 } },
+        opacity: 0.8
+    }
+], Object.assign({}, plotLayout, {
+    barmode: 'overlay',
+    xaxis: {
+        title: 'Minutes from 6pm ET Session Open',
+        gridcolor: '#21262d',
+        tickvals: [0, 120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320, 1440, 1560, 1680, 1800],
+        ticktext: ['6PM', '8PM', '10PM', '12AM', '2AM', '4AM', '6AM', '8AM', '10AM', '12PM', '2PM', '4PM', '6PM', '8PM', '10PM', '12AM']
+    },
+    yaxis: { title: 'Count', gridcolor: '#21262d' },
+    legend: { x: 0.75, y: 0.95, bgcolor: 'transparent', font: { color: '#c9d1d9' } },
+    shapes: [
+        { type: 'line', x0: 630, x1: 630, y0: 0, y1: 1, yref: 'paper', line: { color: '#d29922', width: 2, dash: 'dash' } }
+    ],
+    annotations: [
+        { x: 630, y: 1, yref: 'paper', text: 'Median 4:30 AM', showarrow: false, font: { color: '#d29922', size: 12 }, yanchor: 'bottom' }
+    ],
+    margin: { t: 30, r: 20, b: 50, l: 60 }
+}), plotConfig);
+
+// Session pie
+Plotly.newPlot('session-pie', [{
+    labels: ['OTHER', 'LONDON', 'NYAM', 'ASIA', 'LUNCH', 'PM'],
+    values: [75, 42, 20, 4, 2, 2],
+    type: 'pie',
+    marker: {
+        colors: ['#7d8590', '#58a6ff', '#3fb950', '#d29922', '#f85149', '#bc8cff']
+    },
+    textinfo: 'label+percent',
+    textfont: { color: '#e6edf3', size: 13 },
+    hovertemplate: '%{label}: %{value} hits (%{percent})<extra></extra>',
+    hole: 0.35
+}], Object.assign({}, plotLayout, {
+    margin: { t: 10, r: 10, b: 10, l: 10 },
+    showlegend: false
+}), plotConfig);
+
+// Overshoot histogram
+var overshootPct = [60.28,71.96,8.18,10.53,68.63,15.82,18.17,411.38,49.86,11.41,7.33,31.86,12.37,44.98,16.43,160.89,75.07,32.99,35.02,70.35,7.33,14.65,80.34,6.72,17.78,2.95,379.0,34.39,77.3,39.57,57.98,89.28,149.55,36.02,59.54,95.4,9.2,70.17,11.12,226.53,15.3,50.56,21.21,221.11,2.22,30.58,86.37,45.89,128.4,35.18,9.48,8.55,78.68,17.22,110.17,6.36,18.52,22.74,88.6,54.69,61.75,19.8,305.65,40.59,1.88,263.2,73.71,13.81,60.83,44.4,12.0,145.58,12.08,120.49,6.88,30.0,9.96,147.84,61.26,80.58,336.64,88.05,47.22,13.03,210.79,30.37,36.17,18.54,11.83,62.17,41.6,28.17,3.4,17.94,17.15,26.25,48.85,25.29,8.11,35.12,17.14,153.77,7.6,35.02,27.15,4.29,46.5,35.49,289.88,20.81,7.57,72.84,8.07,73.22,56.01,42.63,73.82,68.42,35.39,33.08,6.98,49.12,153.12,29.29,110.65,0.34,324.25,0.68,122.72,11.63,36.1,103.77,11.9,45.16,116.51,2.81,84.32,6.31,30.03,36.85,172.37,72.0,171.26,46.48,8.78];
+
+Plotly.newPlot('overshoot-hist', [{
+    x: overshootPct,
+    type: 'histogram',
+    xbins: { start: 0, end: 420, size: 20 },
+    marker: { color: 'rgba(88, 166, 255, 0.6)', line: { color: '#58a6ff', width: 1 } },
+    hovertemplate: '%{x:.0f}% overshoot<br>Count: %{y}<extra></extra>'
+}], Object.assign({}, plotLayout, {
+    xaxis: { title: 'Overshoot (% of Prior Day Range)', gridcolor: '#21262d' },
+    yaxis: { title: 'Count', gridcolor: '#21262d' },
+    shapes: [
+        { type: 'line', x0: 36.1, x1: 36.1, y0: 0, y1: 1, yref: 'paper', line: { color: '#d29922', width: 2, dash: 'dash' } }
+    ],
+    annotations: [
+        { x: 36.1, y: 1, yref: 'paper', text: 'Median 36.1%', showarrow: false, font: { color: '#d29922', size: 12 }, yanchor: 'bottom' }
+    ],
+    margin: { t: 30, r: 20, b: 50, l: 60 }
+}), plotConfig);
+
+// Failure pie
+Plotly.newPlot('failure-pie', [{
+    labels: ['Inside Bar', 'Opposite Run'],
+    values: [28, 12],
+    type: 'pie',
+    marker: { colors: ['#7d8590', '#f85149'] },
+    textinfo: 'label+value',
+    textfont: { color: '#e6edf3', size: 13 },
+    hovertemplate: '%{label}: %{value} (%{percent})<extra></extra>',
+    hole: 0.35
+}], Object.assign({}, plotLayout, {
+    margin: { t: 10, r: 10, b: 10, l: 10 },
+    showlegend: false
+}), plotConfig);
+
+// Volatility comparison bar chart
+Plotly.newPlot('vol-compare', [
+    {
+        x: ['Day Range (% close)', 'Range / ATR'],
+        y: [1.864, 1.070],
+        name: 'Hits',
+        type: 'bar',
+        marker: { color: 'rgba(63, 185, 80, 0.7)', line: { color: '#3fb950', width: 1 } }
+    },
+    {
+        x: ['Day Range (% close)', 'Range / ATR'],
+        y: [1.404, 0.813],
+        name: 'Misses',
+        type: 'bar',
+        marker: { color: 'rgba(248, 81, 73, 0.7)', line: { color: '#f85149', width: 1 } }
+    }
+], Object.assign({}, plotLayout, {
+    barmode: 'group',
+    yaxis: { title: 'Value', gridcolor: '#21262d' },
+    legend: { x: 0.7, y: 0.95, bgcolor: 'transparent', font: { color: '#c9d1d9' } },
+    margin: { t: 10, r: 20, b: 50, l: 60 },
+    shapes: [
+        { type: 'line', x0: -0.5, x1: 1.5, y0: 1.0, y1: 1.0, line: { color: '#7d8590', width: 1, dash: 'dot' } }
+    ]
+}), plotConfig);
+</script>
+
+</body>
+</html>
